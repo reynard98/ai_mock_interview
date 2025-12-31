@@ -108,9 +108,9 @@ Return format:
         }
 
         const interview = {
-            role,
-            type,
-            level,
+            role: role,
+            type: type,
+            level: level,
             techstack: techstack.split(",").map((t: string) => t.trim()),
             questions: parsedQuestions,
             userId: resolvedUserId,
