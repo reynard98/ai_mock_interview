@@ -2,131 +2,179 @@
 
 import { auth, db } from "@/firebase/admin";
 import { cookies } from "next/headers";
+import { FieldValue } from "firebase-admin/firestore";
 
-// Session duration (1 week)
-const SESSION_DURATION = 60 * 60 * 24 * 7;
+/* =====================================================
+   Session Configuration
+===================================================== */
+const SESSION_DURATION = 60 * 60 * 24 * 7; // 7 days
 
-// Set session cookie
-export async function setSessionCookie(idToken: string) {
+/* =====================================================
+   Session Helpers
+===================================================== */
+async function setSessionCookie(idToken: string) {
     const cookieStore = await cookies();
 
-    // Create session cookie
     const sessionCookie = await auth.createSessionCookie(idToken, {
-        expiresIn: SESSION_DURATION * 1000, // milliseconds
+        expiresIn: SESSION_DURATION * 1000,
     });
 
-    // Set cookie in the browser
     cookieStore.set("session", sessionCookie, {
-        maxAge: SESSION_DURATION,
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        path: "/",
         sameSite: "lax",
+        path: "/",
+        maxAge: SESSION_DURATION,
     });
 }
 
-export async function signUp(params: SignUpParams) {
+/* =====================================================
+   Auth Actions
+===================================================== */
+export async function signUp(params: {
+    uid: string;
+    name: string;
+    email: string;
+}) {
     const { uid, name, email } = params;
 
-    try {
-        // check if user exists in db
-        const userRecord = await db.collection("users").doc(uid).get();
-        if (userRecord.exists)
-            return {
-                success: false,
-                message: "User already exists. Please sign in.",
-            };
+    const userRef = db.collection("users").doc(uid);
+    const snapshot = await userRef.get();
 
-        // save user to db
-        await db.collection("users").doc(uid).set({
-            name,
-            email,
-            // profileURL,
-            // resumeURL,
-        });
-
-        return {
-            success: true,
-            message: "Account created successfully. Please sign in.",
-        };
-    } catch (error: any) {
-        console.error("Error creating user:", error);
-
-        // Handle Firebase specific errors
-        if (error.code === "auth/email-already-exists") {
-            return {
-                success: false,
-                message: "This email is already in use",
-            };
-        }
-
-        return {
-            success: false,
-            message: "Failed to create account. Please try again.",
-        };
+    if (snapshot.exists) {
+        return { success: false, message: "User already exists." };
     }
+
+    await userRef.set({
+        name,
+        email,
+        createdAt: FieldValue.serverTimestamp(),
+    });
+
+    return { success: true };
 }
 
-export async function signIn(params: SignInParams) {
+export async function signIn(params: {
+    email: string;
+    idToken: string;
+}) {
     const { email, idToken } = params;
 
-    try {
-        const userRecord = await auth.getUserByEmail(email);
-        if (!userRecord)
-            return {
-                success: false,
-                message: "User does not exist. Create an account.",
-            };
+    await auth.getUserByEmail(email);
+    await setSessionCookie(idToken);
 
-        await setSessionCookie(idToken);
-    } catch (error: any) {
-        console.log("");
-
-        return {
-            success: false,
-            message: "Failed to log into account. Please try again.",
-        };
-    }
+    return { success: true };
 }
 
-// Sign out user by clearing the session cookie
 export async function signOut() {
     const cookieStore = await cookies();
-
     cookieStore.delete("session");
 }
 
-// Get current user from session cookie
-export async function getCurrentUser(): Promise<User | null> {
+/* =====================================================
+   Current User
+===================================================== */
+export async function getCurrentUser() {
     const cookieStore = await cookies();
+    const session = cookieStore.get("session")?.value;
 
-    const sessionCookie = cookieStore.get("session")?.value;
-    if (!sessionCookie) return null;
+    if (!session) return null;
 
-    try {
-        const decodedClaims = await auth.verifySessionCookie(sessionCookie, true);
+    const decoded = await auth.verifySessionCookie(session, true);
+    const doc = await db.collection("users").doc(decoded.uid).get();
 
-        // get user info from db
-        const userRecord = await db
-            .collection("users")
-            .doc(decodedClaims.uid)
-            .get();
-        if (!userRecord.exists) return null;
+    if (!doc.exists) return null;
 
-        return {
-            ...userRecord.data(),
-            id: userRecord.id,
-        } as User;
-    } catch (error) {
-        console.log(error);
-
-        // Invalid or expired session
-        return null;
-    }
+    return {
+        id: doc.id,
+        ...doc.data(),
+    };
 }
 
-// Check if user is authenticated
-export async function isAuthenticated() {
-    const user = await getCurrentUser();
-    return !!user;
+/* =====================================================
+   Interview Creation (FIXED)
+===================================================== */
+export async function createInterview(params: {
+    userId: string;
+    title?: string;
+    level: string;
+    questions: string[];
+    coverImage?: string;
+}) {
+    const { userId, level, questions, coverImage } = params;
+
+    const ref = await db.collection("interviews").add({
+        userId, // 🔴 REQUIRED
+        level,
+        questions,
+        coverImage: coverImage ?? "/covers/default.png",
+
+        finalized: true,
+        createdAt: FieldValue.serverTimestamp(), // 🔴 MUST be Timestamp
+    });
+
+    return { success: true, interviewId: ref.id };
+}
+
+/* =====================================================
+   Interview Queries
+===================================================== */
+export async function getInterviewsByUserId(userId: string) {
+    if (!userId) return [];
+
+    const snapshot = await db
+        .collection("interviews")
+        .where("userId", "==", userId)
+        .orderBy("createdAt", "desc")
+        .get();
+
+    return snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+    }));
+}
+
+export async function getLatestInterviews(params: {
+    userId: string;
+    limit?: number;
+}) {
+    const { userId, limit = 10 } = params;
+
+    const snapshot = await db
+        .collection("interviews")
+        .where("finalized", "==", true)
+        .orderBy("createdAt", "desc")
+        .limit(limit + 5)
+        .get();
+
+    return snapshot.docs
+        .map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+        }))
+        .filter((i) => i.userId !== userId)
+        .slice(0, limit);
+}
+
+/* =====================================================
+   ONE-TIME MIGRATION (RUN ONCE)
+===================================================== */
+export async function migrateInterviews(userId: string) {
+    const snapshot = await db.collection("interviews").get();
+    const batch = db.batch();
+
+    snapshot.docs.forEach((doc) => {
+        const data = doc.data();
+
+        if (!data.userId) {
+            batch.update(doc.ref, {
+                userId,
+                createdAt: FieldValue.serverTimestamp(),
+                finalized: true,
+            });
+        }
+    });
+
+    await batch.commit();
+    return { success: true };
 }
