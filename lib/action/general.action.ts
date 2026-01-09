@@ -1,7 +1,7 @@
 "use server";
 
 import { generateObject } from "ai";
-import { google } from "@ai-sdk/google";
+import {groq} from "@ai-sdk/groq";
 
 import { db } from "@/firebase/admin";
 import { feedbackSchema } from "@/constants";
@@ -17,10 +17,8 @@ export async function createFeedback(params: CreateFeedbackParams) {
             )
             .join("");
 
-        const { object } = await generateObject({
-            model: google("gemini-2.0-flash-001", {
-                structuredOutputs: false,
-            }),
+        const { object: {totalScore, categoryScores, strengths, areasForImprovement, finalAssessment} } = await generateObject({
+            model: groq("openai/gpt-oss-20b"),
             schema: feedbackSchema,
             prompt: `
         You are an AI interviewer analyzing a mock interview. Your task is to evaluate the candidate based on structured categories. Be thorough and detailed in your analysis. Don't be lenient with the candidate. If there are mistakes or areas for improvement, point them out.
@@ -38,7 +36,7 @@ export async function createFeedback(params: CreateFeedbackParams) {
                 "You are a professional interviewer analyzing a mock interview. Your task is to evaluate the candidate based on structured categories",
         });
 
-        const feedback = {
+        const feedback = await db.collection('feedback').add({
             interviewId: interviewId,
             userId: userId,
             totalScore: object.totalScore,
@@ -47,7 +45,7 @@ export async function createFeedback(params: CreateFeedbackParams) {
             areasForImprovement: object.areasForImprovement,
             finalAssessment: object.finalAssessment,
             createdAt: new Date().toISOString(),
-        };
+        });
 
         let feedbackRef;
 
