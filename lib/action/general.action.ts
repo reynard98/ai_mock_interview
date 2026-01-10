@@ -21,7 +21,7 @@ export async function createFeedback(params: CreateFeedbackParams) {
             model: groq("openai/gpt-oss-20b"),
             schema: feedbackSchema,
             prompt: `
-        You are an AI interviewer analyzing a mock interview. Your task is to evaluate the candidate based on structured categories. Be thorough and detailed in your analysis. Don't be lenient with the candidate. If there are mistakes or areas for improvement, point them out.
+        You are an AI interviewer analyzing a mock interview. Your task is to evaluate the candidate based on structured categories. Be thorough and detailed in your analysis. Don't be lenient with the candidate. If there are mistakes or areas for improvement, point them out. and provide it in Japanese
         Transcript:
         ${formattedTranscript}
 
@@ -29,21 +29,21 @@ export async function createFeedback(params: CreateFeedbackParams) {
         - **Communication Skills**: Clarity, articulation, structured responses.
         - **Technical Knowledge**: Understanding of key concepts for the role.
         - **Problem-Solving**: Ability to analyze problems and propose solutions.
-        - **Cultural & Role Fit**: Alignment with company values and job role.
-        - **Confidence & Clarity**: Confidence in responses, engagement, and clarity.
+        - **Cultural and Role Fit**: Alignment with company values and job role.
+        - **Confidence and Clarity**: Confidence in responses, engagement, and clarity.
         `,
             system:
                 "You are a professional interviewer analyzing a mock interview. Your task is to evaluate the candidate based on structured categories",
         });
 
         const feedback = await db.collection('feedback').add({
-            interviewId: interviewId,
-            userId: userId,
-            totalScore: object.totalScore,
-            categoryScores: object.categoryScores,
-            strengths: object.strengths,
-            areasForImprovement: object.areasForImprovement,
-            finalAssessment: object.finalAssessment,
+            interviewId,
+            userId,
+            totalScore,
+            categoryScores,
+            strengths,
+            areasForImprovement,
+            finalAssessment,
             createdAt: new Date().toISOString(),
         });
 

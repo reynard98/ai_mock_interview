@@ -7,6 +7,7 @@ import {getCurrentUser} from "@/lib/action/auth.action";
 import {getInterviewsByUserId, getLatestInterviews} from "@/lib/action/general.action";
 
 
+
 const Page = async  () => {
     const user = await getCurrentUser();
 
