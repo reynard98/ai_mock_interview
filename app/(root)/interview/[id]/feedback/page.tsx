@@ -103,7 +103,7 @@ const Feedback = async ({ params }: RouteParams) => {
                         className="flex w-full justify-center"
                     >
                         <p className="text-sm font-semibold text-black text-center">
-                            Retake Interview
+                            Retake Interviews
                         </p>
                     </Link>
                 </Button>
