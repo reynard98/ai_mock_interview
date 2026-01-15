@@ -54,8 +54,7 @@ export async function POST(request: Request) {
                 },
                 {
                     role: "user",
-                    content: `
-Generate interview questions.
+                    content: `Generate interview questions in japanese.
 
 Rules:
 - Output must be a JSON array of strings

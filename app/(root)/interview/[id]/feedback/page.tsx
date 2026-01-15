@@ -22,7 +22,7 @@ const Feedback = async ({ params }: RouteParams) => {
         <section className="section-feedback">
             <div className="flex flex-row justify-center">
                 <h1 className="text-4xl font-semibold">
-                    Feedback on the Interview -{" "}
+                    面接のフィードバック -{" "}
                     <span className="capitalize">{interview.role}</span> Interview
                 </h1>
             </div>
@@ -33,7 +33,7 @@ const Feedback = async ({ params }: RouteParams) => {
                     <div className="flex flex-row gap-2 items-center">
                         <Image src="/star.svg" width={22} height={22} alt="star" />
                         <p>
-                            Overall Impression:{" "}
+                            総合評価:{" "}
                             <span className="text-primary-200 font-bold">
                 {feedback?.totalScore}
               </span>
@@ -59,7 +59,7 @@ const Feedback = async ({ params }: RouteParams) => {
 
             {/* Interview Breakdown */}
             <div className="flex flex-col gap-4">
-                <h2>Breakdown of the Interview:</h2>
+                <h2>面接結果の内訳:</h2>
                 {feedback?.categoryScores?.map((category, index) => (
                     <div key={index}>
                         <p className="font-bold">
@@ -71,7 +71,7 @@ const Feedback = async ({ params }: RouteParams) => {
             </div>
 
             <div className="flex flex-col gap-3">
-                <h3>Strengths</h3>
+                <h3>強み</h3>
                 <ul>
                     {feedback?.strengths?.map((strength, index) => (
                         <li key={index}>{strength}</li>
@@ -80,7 +80,7 @@ const Feedback = async ({ params }: RouteParams) => {
             </div>
 
             <div className="flex flex-col gap-3">
-                <h3>Areas for Improvement</h3>
+                <h3>改善点</h3>
                 <ul>
                     {feedback?.areasForImprovement?.map((area, index) => (
                         <li key={index}>{area}</li>
@@ -92,7 +92,7 @@ const Feedback = async ({ params }: RouteParams) => {
                 <Button className="btn-secondary flex-1">
                     <Link href="/" className="flex w-full justify-center">
                         <p className="text-sm font-semibold text-primary-200 text-center">
-                            Back to dashboard
+                            ダッシュボードに戻る
                         </p>
                     </Link>
                 </Button>
@@ -103,7 +103,7 @@ const Feedback = async ({ params }: RouteParams) => {
                         className="flex w-full justify-center"
                     >
                         <p className="text-sm font-semibold text-black text-center">
-                            Retake Interviews
+                            もう一度面接を受ける
                         </p>
                     </Link>
                 </Button>

@@ -22,15 +22,15 @@ const Page = async  () => {
         <>
             <section className={"card-cta"}>
                 <div className="flex flex-col gap-6 max-w-lg">
-                        <h2>Get Interview-Ready with AI powered practice & feedback</h2>
-                        <p className={"text-lg text-primary-100"}>Practice on real interview questions & get instant feedback </p>
-                        <Button asChild className={"btn-primary max-sm:w-full"}><Link href={"/interview"}>Set an Interview</Link></Button>
+                        <h2 className={"leading-11 font-bold"}>AIで面接を練習しよう</h2>
+                        <p className={"font-semibold text-lg text-primary-100"}>本番さながらの面接質問で練習して、すぐにフィードバックがもらえるる </p>
+                        <Button asChild className={"btn-primary max-sm:w-full"}><Link href={"/interview"}>面接をセットする</Link></Button>
                 </div>
-                <Image src={"/robot.png"} alt={"robo-dude"} width={400} height={400} className="max-sm:hidden"/>
+                <Image src={"/robotDude.png"} alt={"robo-dude"} width={250} height={250} className="max-sm:hidden"/>
             </section>
 
             <section className={"interviews-list flex flex-col gap-6 mt-8"}>
-                <h2>Your Interviews</h2>
+                <h2>あなたの面接</h2>
                 <div className={"interviews-section"}>
                     {
                         hasPastInterviews ? (
@@ -43,13 +43,13 @@ const Page = async  () => {
             </section>
 
             <section className={"flex flex-col gap-6 mt-8"}>
-                <h2>Take an interview</h2>
+                <h2>面接を受ける</h2>
                 <div className={"interviews-section"}>
                     {
                         hasUpcomingInterviews ? (
                             latestInterviews?.map((interview) => (
                                 <InterviewCard {...interview} key={interview.id} />
-                            ))) : (<p>There are no new interview available</p>)
+                            ))) : (<p>現在、利用可能な面接はありません。</p>)
                     }
                 </div>
             </section>

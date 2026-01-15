@@ -29,17 +29,17 @@ export async function createFeedback(params: CreateFeedbackParams) {
             model: groq("openai/gpt-oss-20b"),
             schema: feedbackSchema,
             prompt: `
-You are an AI interviewer analyzing a mock interview. Be strict and detailed.
+You are an AI interviewer analyzing a mock interview. Be strict and detailed. Provide the feedback in Japanese
 
 Transcript:
 ${formattedTranscript}
 
 Please score the candidate from 0 to 100 in:
-- Communication Skills
-- Technical Knowledge
-- Problem-Solving
-- Cultural and Role Fit
-- Confidence and Clarity
+- communication skill
+- technical knowledge
+- problem solving
+- Cultural fit
+- 自信と言語化能力
       `,
             system:
                 "You are a professional interviewer analyzing a mock interview.",
