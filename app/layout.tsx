@@ -5,7 +5,7 @@ import {Toaster} from "sonner";
 
 const ibmPlexSansJP = IBM_Plex_Sans_JP({
     variable: "--font-ibm-plex-sans-jp",
-    subsets: ["japanese", "latin"],
+    subsets: ["japanese ", "latin"],
     weight: ["300", "400", "500", "600", "700"],
 });
 
