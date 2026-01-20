@@ -1,6 +1,3 @@
-//What this file do:
-// Make sure Firebase Admin is initialized exactly once,  then expose Firebase Authentication and Firestore with admin privileges.
-
 import {initializeApp, getApps, cert} from 'firebase-admin/app';
 import {getAuth} from "firebase-admin/auth";
 import {getFirestore} from "firebase-admin/firestore";
