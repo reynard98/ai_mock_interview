@@ -9,6 +9,10 @@ import { feedbackSchema } from "@/constants";
 export async function createFeedback(params: CreateFeedbackParams) {
     const { interviewId, userId, transcript, feedbackId } = params;
 
+    if (!interviewId || !userId) {
+        throw new Error("createFeedback called with missing interviewId or userId");
+    }
+
     try {
         const formattedTranscript = transcript
             .map(
@@ -72,13 +76,29 @@ Please score the candidate from 0 to 100 in:
    READ FUNCTIONS
 ========================= */
 
-export async function getInterviewById(
-    id: string
-): Promise<Interview | null> {
-    const interview = await db.collection("interviews").doc(id).get();
-    if (!interview.exists) return null;
+// export async function getInterviewById(
+//     id: string
+// ): Promise<Interview | null> {
+//     const interview = await db.collection("interviews").doc(id).get();
+//     if (!interview.exists) return null;
+//
+//     return { id: interview.id, ...interview.data() } as Interview;
+// }
+export async function getInterviewsByUserId(
+    userId?: string
+): Promise<Interview[]> {
+    if (!userId) return [];
 
-    return { id: interview.id, ...interview.data() } as Interview;
+    const interviews = await db
+        .collection("interviews")
+        .where("userId", "==", userId)
+        .orderBy("createdAt", "desc")
+        .get();
+
+    return interviews.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+    })) as Interview[];
 }
 
 // export async function getFeedbackByInterviewId(
@@ -127,10 +147,36 @@ export async function getFeedbackByInterviewId(
 }
 
 
+// export async function getLatestInterviews(
+//     params: GetLatestInterviewsParams
+// ): Promise<Interview[] | null> {
+//     const { userId, limit = 20 } = params;
+//
+//     const interviews = await db
+//         .collection("interviews")
+//         .where("finalized", "==", true)
+//         .where("userId", "!=", userId)
+//         .orderBy("userId")
+//         .orderBy("createdAt", "desc")
+//         .limit(limit)
+//         .get();
+//
+//     return interviews.docs.map((doc) => ({
+//         id: doc.id,
+//         ...doc.data(),
+//     })) as Interview[];
+// }
+
 export async function getLatestInterviews(
     params: GetLatestInterviewsParams
-): Promise<Interview[] | null> {
+): Promise<Interview[]> {
     const { userId, limit = 20 } = params;
+
+    // ✅ HARD GUARD
+    if (!userId) {
+        console.warn("getLatestInterviews called without userId");
+        return [];
+    }
 
     const interviews = await db
         .collection("interviews")
@@ -146,6 +192,7 @@ export async function getLatestInterviews(
         ...doc.data(),
     })) as Interview[];
 }
+
 
 export async function getInterviewsByUserId(
     userId: string
