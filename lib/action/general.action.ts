@@ -9,10 +9,6 @@ import { feedbackSchema } from "@/constants";
 export async function createFeedback(params: CreateFeedbackParams) {
     const { interviewId, userId, transcript, feedbackId } = params;
 
-    if (!interviewId || !userId) {
-        throw new Error("createFeedback called with missing interviewId or userId");
-    }
-
     try {
         const formattedTranscript = transcript
             .map(
@@ -76,62 +72,19 @@ Please score the candidate from 0 to 100 in:
    READ FUNCTIONS
 ========================= */
 
-// export async function getInterviewById(
-//     id: string
-// ): Promise<Interview | null> {
-//     const interview = await db.collection("interviews").doc(id).get();
-//     if (!interview.exists) return null;
-//
-//     return { id: interview.id, ...interview.data() } as Interview;
-// }
-export async function getInterviewsByUserId(
-    userId?: string
-): Promise<Interview[]> {
-    if (!userId) return [];
+export async function getInterviewById(
+    id: string
+): Promise<Interview | null> {
+    const interview = await db.collection("interviews").doc(id).get();
+    if (!interview.exists) return null;
 
-    const interviews = await db
-        .collection("interviews")
-        .where("userId", "==", userId)
-        .orderBy("createdAt", "desc")
-        .get();
-
-    return interviews.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-    })) as Interview[];
+    return { id: interview.id, ...interview.data() } as Interview;
 }
-
-// export async function getFeedbackByInterviewId(
-//     params: GetFeedbackByInterviewIdParams
-// ): Promise<Feedback | null> {
-//     const { interviewId, userId } = params;
-//
-//     const querySnapshot = await db
-//         .collection("feedback")
-//         .where("interviewId", "==", interviewId)
-//         // .where("userId", "==", userId)
-//         .limit(1)
-//         .get();
-//
-//     if (querySnapshot.empty) return null;
-//
-//     const feedbackDoc = querySnapshot.docs[0];
-//     return { id: feedbackDoc.id, ...feedbackDoc.data() } as Feedback;
-// }
 
 export async function getFeedbackByInterviewId(
     params: GetFeedbackByInterviewIdParams
 ): Promise<Feedback | null> {
     const { interviewId, userId } = params;
-
-    // ✅ HARD GUARD — prevents Firestore crash
-    if (!interviewId || !userId) {
-        console.warn("getFeedbackByInterviewId called with missing params", {
-            interviewId,
-            userId,
-        });
-        return null;
-    }
 
     const querySnapshot = await db
         .collection("feedback")
@@ -146,37 +99,10 @@ export async function getFeedbackByInterviewId(
     return { id: feedbackDoc.id, ...feedbackDoc.data() } as Feedback;
 }
 
-
-// export async function getLatestInterviews(
-//     params: GetLatestInterviewsParams
-// ): Promise<Interview[] | null> {
-//     const { userId, limit = 20 } = params;
-//
-//     const interviews = await db
-//         .collection("interviews")
-//         .where("finalized", "==", true)
-//         .where("userId", "!=", userId)
-//         .orderBy("userId")
-//         .orderBy("createdAt", "desc")
-//         .limit(limit)
-//         .get();
-//
-//     return interviews.docs.map((doc) => ({
-//         id: doc.id,
-//         ...doc.data(),
-//     })) as Interview[];
-// }
-
 export async function getLatestInterviews(
     params: GetLatestInterviewsParams
-): Promise<Interview[]> {
+): Promise<Interview[] | null> {
     const { userId, limit = 20 } = params;
-
-    // ✅ HARD GUARD
-    if (!userId) {
-        console.warn("getLatestInterviews called without userId");
-        return [];
-    }
 
     const interviews = await db
         .collection("interviews")
@@ -192,7 +118,6 @@ export async function getLatestInterviews(
         ...doc.data(),
     })) as Interview[];
 }
-
 
 export async function getInterviewsByUserId(
     userId: string
