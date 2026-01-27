@@ -54,7 +54,7 @@ export async function POST(request: Request) {
                 },
                 {
                     role: "user",
-                    content: `Generate interview questions in japanese.
+                    content: `Generate interview questions.
 
 Rules:
 - Output must be a JSON array of strings
@@ -67,7 +67,6 @@ Experience level: ${level}
 Tech stack: ${techstack}
 Focus: ${type}
 Number of questions: ${amount}
-
 Return format:
 ["Question 1", "Question 2", "Question 3"]
           `.trim(),
